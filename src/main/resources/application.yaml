@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: periodt-backend
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # ── JPA / Hibernate ───────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false   # ← ADD: fixes the warning in your logs. Never hold
+    #   a DB connection open for the full HTTP request.
+    properties:
+      hibernate:
+        # dialect: ...   ← REMOVE this entire line. Hibernate 7 auto-detects
+        #   PostgreSQL. Your logs showed a warning about this.
+        format_sql: true
+    show-sql: true
+
+  # ── Flyway ────────────────────────────────────────────────────────────────
+  # THIS WAS MISSING — this is why Flyway was silent.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration   # must match your folder structure:
+    # src/main/resources/db/migration/
+    baseline-on-migrate: false          # false = fresh DB, no existing tables
+
+# ── .env file support ─────────────────────────────────────────────────────
+# Kept at the bottom exactly as you had it
+spring.config.import: optional:file:.env[.properties]
+
+# ── Logging ───────────────────────────────────────────────────────────────
+logging:
+  level:
+    org.flywaydb: DEBUG          # see Flyway's full output
+    org.hibernate.SQL: DEBUG     # see generated SQL
+    com.ben.periodt: DEBUG       # your app package
+
+# ── Security ──────────────────────────────────────────────────────────────
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION_MS}

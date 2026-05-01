@@ -20,25 +20,19 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    open-in-view: false   # ← ADD: fixes the warning in your logs. Never hold
+    open-in-view: false
     #   a DB connection open for the full HTTP request.
     properties:
       hibernate:
-        # dialect: ...   ← REMOVE this entire line. Hibernate 7 auto-detects
-        #   PostgreSQL. Your logs showed a warning about this.
         format_sql: true
     show-sql: true
 
   # ── Flyway ────────────────────────────────────────────────────────────────
-  # THIS WAS MISSING — this is why Flyway was silent.
   flyway:
     enabled: true
-    locations: classpath:db/migration   # must match your folder structure:
-    # src/main/resources/db/migration/
-    baseline-on-migrate: false          # false = fresh DB, no existing tables
-
+    locations: classpath:db/migration
+    baseline-on-migrate: false
 # ── .env file support ─────────────────────────────────────────────────────
-# Kept at the bottom exactly as you had it
 spring.config.import: optional:file:.env[.properties]
 
 # ── Logging ───────────────────────────────────────────────────────────────
@@ -53,3 +47,4 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION_MS}
+

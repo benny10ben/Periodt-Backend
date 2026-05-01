@@ -29,7 +29,7 @@ public class DeviceController {
             @Valid @RequestBody DeviceRegistrationRequest request,
             Authentication authentication) {
 
-        UserEntity user = userRepository.findByEmail(authentication.getName())
+        UserEntity user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Find existing device or create a new one

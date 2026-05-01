@@ -27,7 +27,7 @@ public class KeyController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadKey(@Valid @RequestBody WrappedKeyDto request, Authentication authentication) {
         // 1. Get the authenticated user from the JWT token
-        UserEntity user = userRepository.findByEmail(authentication.getName())
+        UserEntity user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 2. Check if a key already exists for this user
@@ -46,7 +46,7 @@ public class KeyController {
 
     @GetMapping("/fetch")
     public ResponseEntity<?> fetchKey(Authentication authentication) {
-        UserEntity user = userRepository.findByEmail(authentication.getName())
+        UserEntity user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return keyRepository.findById(user.getId())

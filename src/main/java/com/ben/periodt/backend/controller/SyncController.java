@@ -28,19 +28,32 @@ public class SyncController {
 
     @PostMapping("/push")
     public ResponseEntity<?> pushChanges(@RequestBody SyncPushRequest request, Authentication authentication) {
-        UserEntity user = userRepository.findByEmail(authentication.getName())
+        UserEntity user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         for (SyncItemDto item : request.items()) {
-            // Find existing record or create a new one
-            SyncDataEntity entity = syncRepository.findById(item.syncUuid())
-                    .orElse(new SyncDataEntity());
+            // Find existing record
+            SyncDataEntity entity = syncRepository.findById(item.syncUuid()).orElse(null);
 
-            entity.setSyncUuid(item.syncUuid());
-            entity.setUserId(user.getId());
-            entity.setEntityType(item.entityType());
+            if (entity != null) {
+                // LAST-WRITE-WINS CONFLICT RESOLUTION
+                // If the database already has a newer (or equal) version of this item,
+                // reject the stale push from the client.
+                if (entity.getClientUpdatedAt() >= item.clientUpdatedAt()) {
+                    continue; // Skip this item, move to the next one
+                }
+            } else {
+                // It's a new item, create an empty entity
+                entity = new SyncDataEntity();
+                entity.setSyncUuid(item.syncUuid());
+                entity.setUserId(user.getId());
+                entity.setEntityType(item.entityType());
+            }
+
+            // Update the entity with the winning client data
             entity.setEncryptedPayload(item.encryptedPayload());
             entity.setDeleted(item.isDeleted() != null ? item.isDeleted() : false);
+            entity.setClientUpdatedAt(item.clientUpdatedAt());
 
             syncRepository.save(entity);
         }
@@ -53,7 +66,7 @@ public class SyncController {
             @RequestParam(defaultValue = "0") Long cursor,
             Authentication authentication) {
 
-        UserEntity user = userRepository.findByEmail(authentication.getName())
+        UserEntity user = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Fetch everything newer than the client's cursor
@@ -67,7 +80,8 @@ public class SyncController {
                         e.getEntityType(),
                         e.getEncryptedPayload(),
                         e.getDeleted(),
-                        e.getServerVersion()
+                        e.getServerVersion(),
+                        e.getClientUpdatedAt() // Include the timestamp in the pull
                 ))
                 .collect(Collectors.toList());
 

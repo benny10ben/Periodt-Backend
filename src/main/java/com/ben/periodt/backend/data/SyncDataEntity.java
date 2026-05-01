@@ -21,12 +21,16 @@ public class SyncDataEntity {
     @Column(name = "encrypted_payload", nullable = false)
     private String encryptedPayload;
 
-    // This is generated automatically by PostgreSQL's BIGSERIAL, so we don't insert/update it from Java.
+    // We will control this via a PostgreSQL trigger now, so insertable/updatable remain false
     @Column(name = "server_version", insertable = false, updatable = false)
     private Long serverVersion;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
+
+    // NEW: The exact millisecond timestamp when the device made the change
+    @Column(name = "client_updated_at", nullable = false)
+    private Long clientUpdatedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
@@ -61,9 +65,11 @@ public class SyncDataEntity {
     public Long getServerVersion() { return serverVersion; }
 
     public Boolean getDeleted() { return isDeleted; }
-    public void setDeleted(Boolean deleted) { isDeleted = deleted; }
+    public void setDeleted(Boolean deleted) { this.isDeleted = deleted; }
+
+    public Long getClientUpdatedAt() { return clientUpdatedAt; }
+    public void setClientUpdatedAt(Long clientUpdatedAt) { this.clientUpdatedAt = clientUpdatedAt; }
 
     public OffsetDateTime getCreatedAt() { return createdAt; }
-
     public OffsetDateTime getUpdatedAt() { return updatedAt; }
 }

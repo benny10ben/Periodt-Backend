@@ -8,9 +8,8 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    // Spring Data JPA automatically writes the SQL query for this!
-    // SELECT * FROM users WHERE email = ?
-    Optional<UserEntity> findByEmail(String email);
+    // CHANGED: Spring Data JPA will now write 'SELECT * FROM users WHERE username = ?'
+    Optional<UserEntity> findByUsername(String username);
 
-    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
 }

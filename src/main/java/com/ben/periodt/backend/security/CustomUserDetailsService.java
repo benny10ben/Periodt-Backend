@@ -20,15 +20,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserEntity userEntity = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserEntity userEntity = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // Converts our database entity into a standard Spring Security User
         return new User(
-                userEntity.getEmail(),
+                userEntity.getUsername(),
                 userEntity.getPasswordHash(),
-                Collections.emptyList() // Empty roles/authorities since everyone is a standard user
+                Collections.emptyList()
         );
     }
 }

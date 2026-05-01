@@ -16,26 +16,25 @@ public class JwtUtil {
     private final SecretKey key;
     private final long expirationMs;
 
-    // Spring automatically injects the values from application.yml here
     public JwtUtil(
             @Value("${security.jwt.secret}") String secret,
             @Value("${security.jwt.expiration}") long expirationMs) {
-        // JJWT strictly requires keys to be properly hashed for modern algorithms
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String email) {
+    // CHANGED: Token now holds the immutable Long ID
+    public String generateToken(Long userId) {
         return Jwts.builder()
-                .subject(email)
+                .subject(String.valueOf(userId))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        return getClaims(token).getSubject();
+    public Long extractUserId(String token) {
+        return Long.parseLong(getClaims(token).getSubject());
     }
 
     public boolean validateToken(String token) {
@@ -43,16 +42,11 @@ public class JwtUtil {
             getClaims(token);
             return true;
         } catch (Exception e) {
-            // If the token is expired, malformed, or tampered with, it throws an exception
             return false;
         }
     }
 
     private Claims getClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
 }

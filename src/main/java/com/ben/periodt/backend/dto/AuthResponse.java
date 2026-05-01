@@ -2,5 +2,7 @@ package com.ben.periodt.backend.dto;
 
 public record AuthResponse(
         String token,
-        Long userId
+        Long userId,
+        String username,
+        String saltBase64
 ) {}

@@ -7,5 +7,6 @@ public record SyncItemDto(
         String entityType,
         String encryptedPayload,
         Boolean isDeleted,
-        Long serverVersion // The server fills this in when pulling data
+        Long serverVersion,
+        Long clientUpdatedAt
 ) {}

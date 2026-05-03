@@ -4,10 +4,7 @@ import com.ben.periodt.backend.data.UserEntity;
 import com.ben.periodt.backend.data.UserRepository;
 import com.ben.periodt.backend.data.WrappedKeyEntity;
 import com.ben.periodt.backend.data.WrappedKeyRepository;
-import com.ben.periodt.backend.dto.AuthResponse;
-import com.ben.periodt.backend.dto.ChangePasswordRequest;
-import com.ben.periodt.backend.dto.LoginRequest;
-import com.ben.periodt.backend.dto.RegisterRequest;
+import com.ben.periodt.backend.dto.*;
 import com.ben.periodt.backend.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -107,6 +104,28 @@ public class AuthController {
         keyRepository.save(keyEntity);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-username")
+    public ResponseEntity<?> changeUsername(@Valid @RequestBody ChangeUsernameRequest request, Authentication authentication) {
+        UserEntity user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (userRepository.existsByUsername(request.newUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already taken");
+        }
+
+        user.setUsername(request.newUsername());
+        userRepository.save(user);
+
+        String newToken = jwtUtil.generateToken(user.getId());
+
+        return ResponseEntity.ok(new AuthResponse(
+                newToken,
+                user.getId(),
+                user.getUsername(),
+                user.getSalt()
+        ));
     }
 
     @DeleteMapping("/delete")

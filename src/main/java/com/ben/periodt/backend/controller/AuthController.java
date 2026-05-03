@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;

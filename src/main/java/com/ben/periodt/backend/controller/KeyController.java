@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 
 @RestController
-@RequestMapping("/api/keys")
+@RequestMapping("/api/v1/keys")
 public class KeyController {
 
     private final WrappedKeyRepository keyRepository;

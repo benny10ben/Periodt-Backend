@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/sync")
+@RequestMapping("/api/v1/sync")
 public class SyncController {
 
     private final SyncDataRepository syncRepository;

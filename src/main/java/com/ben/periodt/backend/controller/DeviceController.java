@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 
 @RestController
-@RequestMapping("/api/devices")
+@RequestMapping("/api/v1/devices")
 public class DeviceController {
 
     private final DeviceRepository deviceRepository;

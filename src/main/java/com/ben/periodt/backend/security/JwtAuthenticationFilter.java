@@ -1,7 +1,5 @@
 package com.ben.periodt.backend.security;
 
-import com.ben.periodt.backend.data.UserEntity;
-import com.ben.periodt.backend.data.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,11 +20,9 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
     }
 
     @Override
@@ -47,24 +43,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (jwtUtil.validateToken(jwt)) {
             Long userId = jwtUtil.extractUserId(jwt);
+            String username = jwtUtil.extractUsername(jwt);
 
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserEntity userEntity = userRepository.findById(userId).orElse(null);
+            if (userId != null && username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // We no longer query the database here. We trust the signed JWT.
+                UserDetails userDetails = new User(username, "", Collections.emptyList());
 
-                if (userEntity != null) {
-                    // Populate Spring Security with the fresh username
-                    UserDetails userDetails = new User(
-                            userEntity.getUsername(),
-                            userEntity.getPasswordHash(),
-                            Collections.emptyList()
-                    );
-
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 

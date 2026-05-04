@@ -14,27 +14,43 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey key;
-    private final long expirationMs;
+    private final long accessTokenExpirationMs;
+    private final long refreshTokenExpirationMs;
 
     public JwtUtil(
             @Value("${security.jwt.secret}") String secret,
-            @Value("${security.jwt.expiration}") long expirationMs) {
+            @Value("${security.jwt.access-expiration}") long accessTokenExpirationMs,
+            @Value("${security.jwt.refresh-expiration}") long refreshTokenExpirationMs) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMs = expirationMs;
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
+        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
-    // CHANGED: Token now holds the immutable Long ID
-    public String generateToken(Long userId) {
+    public String generateAccessToken(Long userId, String username) {
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .claim("username", username) // Added username claim
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpirationMs))
+                .signWith(key)
+                .compact();
+    }
+
+    public String generateRefreshToken(Long userId) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationMs))
                 .signWith(key)
                 .compact();
     }
 
     public Long extractUserId(String token) {
         return Long.parseLong(getClaims(token).getSubject());
+    }
+
+    public String extractUsername(String token) {
+        return getClaims(token).get("username", String.class);
     }
 
     public boolean validateToken(String token) {
